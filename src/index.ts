@@ -11,7 +11,7 @@ import { Hono } from 'hono'
 const app = new Hono<{ Bindings: CloudflareBindings }>()
 
 app.get('/', (ctx) => {  
-  return ctx.text('Hello Hono v1! in ' + ctx.env.ENVIRONMENT)
+  return ctx.text('Hello Hono v2! in ' + ctx.env.ENVIRONMENT)
 })
 
 app.get('/cron', (ctx) => {
