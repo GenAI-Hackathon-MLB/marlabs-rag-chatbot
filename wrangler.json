@@ -8,28 +8,37 @@
   },
   "env": {
     "dev": {
+      "name": "worker-cron-hono-dev",
       "vars": {
         "ENVIRONMENT": "dev"
       },
-      "name": "worker-cron-hono-dev",
       "triggers": {
         "crons": ["* * * * *"]
-      }
+      },
+      "ai": {
+        "binding": "AI"
+      },
+      "vectorize": [
+        {
+          "binding": "VECTORIZE",
+          "index_name": "test-embeddings-index"
+        }
+      ]
     },
     "staging": {
+      "name": "worker-cron-hono-staging",
       "vars": {
         "ENVIRONMENT": "staging"
       },
-      "name": "worker-cron-hono-staging",
       "triggers": {
         "crons": ["0 * * * *"]
       }
     },
     "production": {
+      "name": "worker-cron-hono-production",
       "vars": {
         "ENVIRONMENT": "production"
       },
-      "name": "worker-cron-hono-production",
       "triggers": {
         "crons": ["0 0 1 * *"]
       }
