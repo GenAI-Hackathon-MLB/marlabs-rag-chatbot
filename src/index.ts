@@ -4,7 +4,7 @@ import { Hono } from 'hono'
 const app = new Hono<{ Bindings: CloudflareBindings }>()
 
 app.get('/', (ctx) => {
-  return ctx.text('Hello Hono!')
+  return ctx.text('Hello Hono v1!')
 })
 
 app.get('/cron', (ctx) => {
