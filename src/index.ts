@@ -81,7 +81,7 @@ app.post('/ai', async (ctx) => {
   const contextMessage = docs.length
     ? `Context:\n${docs.map(doc => `- ${doc}`).join("\n")}`
     : ""
-  const systemPrompt = `When answering the question or responding, use the context provided, if it is provided and relevant.`
+  const systemPrompt = `When answering the question or responding, use the context provided, if it is provided and relevant. Try to answer in 50 words and dont mention the context and give consize answer`
 
   const response = await ctx.env.AI.run(
     '@cf/meta/llama-3-8b-instruct',
@@ -91,7 +91,7 @@ app.post('/ai', async (ctx) => {
         { role: 'system', content: systemPrompt },
         { role: 'user', content: question }
       ],
-      stream: true,
+      stream: false,
     }
   );
 
