@@ -1,10 +1,17 @@
-interface Env {}
+interface Env {
+  ENVIRONMENT: string;
+}
+
+interface CloudflareBindings {
+  ENVIRONMENT: string;
+}
+
 import { Hono } from 'hono'
 
 const app = new Hono<{ Bindings: CloudflareBindings }>()
 
-app.get('/', (ctx) => {
-  return ctx.text('Hello Hono v1!')
+app.get('/', (ctx) => {  
+  return ctx.text('Hello Hono v1! in ' + ctx.env.ENVIRONMENT)
 })
 
 app.get('/cron', (ctx) => {

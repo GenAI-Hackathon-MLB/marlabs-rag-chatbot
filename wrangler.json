@@ -6,13 +6,16 @@
   "observability": {
     "enabled": true
   },
-  "vars": {
-    "ENVIRONMENT": "dev"
-  },
-  "triggers": {
-    "crons": ["* * * * *"]
-  },
   "env": {
+    "dev": {
+      "vars": {
+        "ENVIRONMENT": "dev"
+      },
+      "name": "worker-cron-hono-dev",
+      "triggers": {
+        "crons": ["* * * * *"]
+      }
+    },
     "staging": {
       "vars": {
         "ENVIRONMENT": "staging"
