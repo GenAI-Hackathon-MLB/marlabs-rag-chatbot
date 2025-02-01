@@ -8,7 +8,7 @@ app.get('/', (ctx) => {
 })
 
 app.get('/cron', (ctx) => {
-  return ctx.text('Cron job running!')
+  return ctx.text('Cron job running now!')
 })
 
 async function handleScheduled(event: ScheduledEvent, env: Env, ctx:ExecutionContext) {
