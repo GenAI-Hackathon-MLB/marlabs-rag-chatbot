@@ -10,7 +10,9 @@
     "dev": {
       "name": "worker-cron-hono-dev",
       "vars": {
-        "ENVIRONMENT": "dev"
+        "ENVIRONMENT": "dev",
+        "EMBEDDING_MODEL": "@cf/baai/bge-base-en-v1.5",
+        "LLM_MODEL": "llama3-8b-8192"
       },
       "triggers": {
         "crons": ["* * * * *"]
