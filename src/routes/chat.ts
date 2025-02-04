@@ -1,10 +1,10 @@
 import { Hono } from 'hono'
-import { serveStatic } from 'hono/serve-static';
 import { html, raw } from 'hono/html'
 import { Env } from "../../worker-configuration";
 
 const app = new Hono<{ Bindings: Env }>()
 // This endpoint is used to test the server
+
 app.get('/', (ctx) => {
   return ctx.html(html`
     <html lang="en">

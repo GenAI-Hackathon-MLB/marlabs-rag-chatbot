@@ -3,6 +3,7 @@ interface Env {
   ENVIRONMENT: "dev" | "staging" | "production";
   EMBEDDING_MODEL: string;
   LLM_MODEL: string;
+  DB: D1Database;
   VECTORIZE: VectorizeIndex;
   AI: Ai;
   GROQ_API_KEY: string;

@@ -5,7 +5,11 @@ import ai from './routes/ai';
 import chat from './routes/chat';
 import vectordb from './routes/vectordb';
 
+import { cors } from 'hono/cors'
+
 const app = new Hono<{ Bindings: Env }>()
+
+app.use('*', cors())
 
 // Define routes
 app.route('/ai', ai)

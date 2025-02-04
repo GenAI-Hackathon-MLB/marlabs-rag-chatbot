@@ -12,7 +12,7 @@
       "vars": {
         "ENVIRONMENT": "dev",
         "EMBEDDING_MODEL": "@cf/baai/bge-base-en-v1.5",
-        "LLM_MODEL": "llama3-8b-8192"
+        "LLM_MODEL": "llama-3.1-8b-instant"
       },
       "triggers": {
         "crons": ["* * * * *"]
@@ -20,6 +20,13 @@
       "ai": {
         "binding": "AI"
       },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "test-chat-history",
+          "database_id": "460db141-3663-452d-880b-652a3064644c"
+        }
+      ],
       "vectorize": [
         {
           "binding": "VECTORIZE",
