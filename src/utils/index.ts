@@ -14,8 +14,8 @@ async function getEmbeddings(env: Env) {
 }
 
 async function getVectorStore(env: Env) {
-  const embeddings = getEmbeddings(env);
-  const store = await new CloudflareVectorizeStore(await embeddings, {
+  const embeddings = await getEmbeddings(env);
+  const store = new CloudflareVectorizeStore(embeddings, {
     index: env.VECTORIZE,
   });
   return store;
@@ -25,6 +25,8 @@ async function queryVectorDB(env:Env, query: string, topKwrgs: number = 3) {
   const store = await getVectorStore(env);
   
   const results = await store.similaritySearchWithScore(query, topKwrgs);
+  console.log("vector query: ", results);
+  
   return results;
 }
 

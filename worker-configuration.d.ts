@@ -6,8 +6,9 @@ interface Env {
   DB: D1Database;
   VECTORIZE: VectorizeIndex;
   AI: Ai;
+  JOBSUPDATER_WORKFLOW: Workflow;
   GROQ_API_KEY: string;
-  HF_API_KEY: string;
+  OPENAI_API_KEY: string;
 }
 
 

@@ -12,7 +12,8 @@
       "vars": {
         "ENVIRONMENT": "dev",
         "EMBEDDING_MODEL": "@cf/baai/bge-base-en-v1.5",
-        "LLM_MODEL": "llama-3.1-8b-instant"
+        "LLM_MODEL": "llama-3.3-70b-versatile"
+        
       },
       "triggers": {
         "crons": ["* * * * *"]
@@ -32,7 +33,14 @@
           "binding": "VECTORIZE",
           "index_name": "test-embeddings-index"
         }
-      ]
+      ],
+      "workflows": [
+    {
+      "name": "jobsupdater",
+      "binding": "JOBSUPDATER_WORKFLOW",
+      "class_name": "JobsUpdaterWorkflow"
+    }
+  ]
     },
     "staging": {
       "name": "worker-cron-hono-staging",

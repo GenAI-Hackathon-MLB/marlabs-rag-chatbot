@@ -4,7 +4,9 @@ import { Env } from "../worker-configuration";
 import ai from './routes/ai';
 import chat from './routes/chat';
 import vectordb from './routes/vectordb';
+import { JobsUpdaterWorkflow } from './workflows/jobsupdater';
 
+export {JobsUpdaterWorkflow}
 import { cors } from 'hono/cors'
 
 const app = new Hono<{ Bindings: Env }>()
