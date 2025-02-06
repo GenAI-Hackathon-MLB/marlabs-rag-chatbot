@@ -33,23 +33,6 @@
           "binding": "VECTORIZE",
           "index_name": "test-embeddings-index"
         }
-      ],
-      "workflows": [
-        {
-          "name": "jobsupdater",
-          "binding": "JOBSUPDATER_WORKFLOW",
-          "class_name": "JobsUpdaterWorkflow"
-        },
-        {
-          "name": "addvectors",
-          "binding": "ADDVECTORS_WORKFLOW",
-          "class_name": "AddVectorsWorkflow"
-        },
-        {
-          "name": "deletevectors",
-          "binding": "DELETEVECTORS_WORKFLOW",
-          "class_name": "DeleteVectorsWorkflow"
-        }
       ]
     },
     "staging": {

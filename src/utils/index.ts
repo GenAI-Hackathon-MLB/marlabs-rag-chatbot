@@ -49,6 +49,30 @@ async function queryVectorDB(env: Env, query: string, topKwrgs: number = 3) {
 
   return results;
 }
+// This function is used to query the vector store with a query
+async function getVectorContext(env: Env, query: string, topKwrgs: number = 1) {
+  // Get results from vector DB
+  const results = await queryVectorDB(env, query, topKwrgs);
+
+  // Attach context to system message
+  const retrievedContext = results
+    .filter(([document, score]) => score > 0.5)
+    .map(([document, score]) => {
+      const content = document.pageContent.replaceAll(/[{}]/g, '') || ""
+      // Iterate over each key-value pair
+      const metadata = document.metadata
+      let metadataText = ""
+      for (const key in metadata) {
+        if (metadata.hasOwnProperty(key)) {
+          metadataText += (`${key}: ${metadata[key]}` + " | ").replaceAll(/[{}]/g, '');
+        }
+      }
+      return `Page Content: ${content} \nMetadata: ${metadataText}`;
+    })
+    .join("\n\n") || "";
+
+  return retrievedContext;
+}
 
 // TEXT SUMMARIZATION
 async function summarizePageText(env: Env, pageContent: string) {
@@ -172,4 +196,4 @@ async function getJobChunks(jobUrl: string, env: Env) {
 }
 
 
-export { getEmbeddings, getVectorStore, queryVectorDB, summarizePageText, getJobChunks, getAllJobLinks, getCleanJobList };
+export { getEmbeddings, getVectorStore, queryVectorDB, getVectorContext, summarizePageText, getJobChunks, getAllJobLinks, getCleanJobList };
