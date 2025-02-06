@@ -1,56 +1,48 @@
 
 import { Hono } from 'hono'
 import { Env } from "../../worker-configuration";
-import { getEmbeddings, queryVectorDB, getVectorStore } from '../utils';
-import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
-import { HTMLWebBaseLoader } from "@langchain/community/document_loaders/web/html";
-import { MozillaReadabilityTransformer } from "@langchain/community/document_transformers/mozilla_readability";
-import {CheerioWebBaseLoader} from "@langchain/community/document_loaders/web/cheerio";
-import {HtmlToTextTransformer} from "@langchain/community/document_transformers/html_to_text";
-
-import {getAllJobLinks, getJobChunks} from '../utils/career';
-import { DocumentInterface } from '@langchain/core/documents';
+import { getEmbeddings, queryVectorDB, getVectorStore, getJobChunks,getAllJobLinks, getCleanJobList } from '../utils';
 
 
 const app = new Hono<{ Bindings: Env }>()
 
 app.post('/jobsupdater', async (ctx) => {
-  console.log(await ctx.env.JOBSUPDATER_WORKFLOW.create())
-  return ctx.text("ok")
+  const wid = (await ctx.env.JOBSUPDATER_WORKFLOW.create()).id
+  return ctx.text(wid)
 })
 
 app.post('/updateJobs', async (ctx) => {
 
-  const store = await getVectorStore(ctx.env);
-  
   const jobLinks = await getAllJobLinks();
-  // console.log('jobs:', jobs);
-  let jobChunksList: DocumentInterface[] = []
-  for (const {role, link} of jobLinks) {
+  console.log('jobs:', jobLinks.length);
+
+  const { entriesToAdd, entriesToDelete } = await getCleanJobList(jobLinks, ctx.env)
+  console.log("jobs:", entriesToAdd.length)
+
+  const store = await getVectorStore(ctx.env);
+  await store.delete({ ids: entriesToDelete });
+
+
+  for (const { role, link } of entriesToAdd) {
     const chunks = await getJobChunks(link, ctx.env)
-    console.log('jc l', chunks.length);
-    
-    jobChunksList = jobChunksList.concat(chunks)
-    break
+
+    const d1Result = await ctx.env.DB.prepare(`INSERT INTO joblistings (role, link) VALUES (?1, ?2) RETURNING id`).bind(role, link).all()
+    const d1Id = String(d1Result.results[0].id) || ""
+
+    const vIds = await store.addDocuments(chunks, { ids: [d1Id] })
   }
-  console.log("JC length",jobChunksList.length);
-  
 
-  // const ids = await store.addDocuments(jobChunksList);
-  // console.log('ids', ids);
-  
-
-  
   return ctx.text('Job scrapping running now!')
 });
 
 // Add a new document/documents to the vector store
-app.post("/add", async (ctx) => {
+app.post("/addWithUrl", async (ctx) => {
   const payload = await ctx.req.json();
   console.log('payload:', payload, new Date());
 
-  const message = payload.message;
+  const url = payload.url;
+
   
 
   return ctx.json({ success: true });

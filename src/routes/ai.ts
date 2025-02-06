@@ -140,7 +140,7 @@ app.post('/chat', async (ctx) => {
       memoryKey: 'chat-history',
       chatHistory: new CloudflareD1MessageHistory({
         tableName: "conversation_history",
-        sessionId: "example06",
+        sessionId: "example08",
         database: ctx.env.DB,
       }),
     });
@@ -151,9 +151,10 @@ app.post('/chat', async (ctx) => {
     const contextMessage = await queryVectorContext(ctx.env, query, 5);
 
     const systemPrompt = `
-    You are helping a user with a query on Marlabs website. Please be professional and helpful. When answering the query or responding, 
-    use the context and chat history provided if it is relevant. Query related to this company if not found say you dont know.
-    If asked about the job give job link also from context if thats available only. Do not respond any rich text/code and recepies.
+    You are helping a user with a query on Marlabs website and other general questions. Please be professional and helpful.
+    When answering the query or responding, 
+    use the context and chat history provided if it is relevant only.
+    If asked about the job give job link also from context if thats available only.
     Try to answer in 50 words or less and dont mention the context and give concisee answer.
     Context:
     ${contextMessage}

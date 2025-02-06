@@ -5,8 +5,10 @@ import ai from './routes/ai';
 import chat from './routes/chat';
 import vectordb from './routes/vectordb';
 import { JobsUpdaterWorkflow } from './workflows/jobsupdater';
+import { AddVectorsWorkflow } from './workflows/addvectors';
+import { DeleteVectorsWorkflow } from './workflows/deletevectors';
 
-export {JobsUpdaterWorkflow}
+export {JobsUpdaterWorkflow, AddVectorsWorkflow, DeleteVectorsWorkflow}
 import { cors } from 'hono/cors'
 
 const app = new Hono<{ Bindings: Env }>()
