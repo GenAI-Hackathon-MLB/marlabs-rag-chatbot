@@ -9,6 +9,9 @@
   "env": {
     "dev": {
       "name": "worker-cron-hono-dev",
+      "assets": {
+        "directory": "./public"
+      },
       "vars": {
         "ENVIRONMENT": "dev",
         "EMBEDDING_MODEL": "@cf/baai/bge-base-en-v1.5",

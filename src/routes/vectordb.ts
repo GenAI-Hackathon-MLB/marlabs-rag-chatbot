@@ -4,8 +4,12 @@ import { Env } from "../../worker-configuration";
 
 import { getEmbeddings, queryVectorDB, getVectorStore, getJobChunks,getAllJobLinks, getCleanJobList } from '../utils';
 
+// Hono c variables
+type Variables = {
+  userId: string;
+};
 
-const app = new Hono<{ Bindings: Env }>()
+const app = new Hono<{ Bindings: Env, Variables: Variables }>()
 
 app.post('/jobsupdater', async (ctx) => {
   const wid = (await ctx.env.JOBSUPDATER_WORKFLOW.create()).id

@@ -1,5 +1,7 @@
 {
-  "name": "worker-cron-hono",
+  "name": "marlabs-rag-chatbot",
+  "author": "MarsAI-Keshab-Manni",
+  "version": "0.0.1",
   "scripts": {
     "dev": "wrangler dev --experimental-vectorize-bind-to-prod --env dev",
     "dev:cron": "wrangler dev --test-scheduled",

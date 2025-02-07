@@ -12,30 +12,34 @@ import {
   MessagesPlaceholder,
 } from "@langchain/core/prompts";
 import { HumanMessage, AIMessage, SystemMessage } from "@langchain/core/messages"
-
+import { getCookie } from "hono/cookie";
 
 import { queryVectorDB, getVectorStore, getVectorContext } from '../utils';
 
-const app = new Hono<{ Bindings: Env }>()
+// Hono c variables
+type Variables = {
+  userId: string;
+};
+
+const app = new Hono<{ Bindings: Env, Variables: Variables }>()
 
 
 // This endpoint is used to ask querys to the AI with cloudflare models
-app.post('/:sessionID', async (ctx) => {
+app.post('/', async (ctx) => {
+
+  // return ctx.text(userId);
   let chainResp: any = ""
   try {
+    const userId = getCookie(ctx, 'userId') || ctx.get('userId');
     const payload = await ctx.req.json();
-    const sessionId = ctx.req.param('sessionID')
-    if(!sessionId){
-      throw new Error("SessionID not available")
-    }
-    console.log('payload:', payload, new Date());
+    console.log('user:', userId, 'payload:', payload, new Date());
 
     const query = payload.message;
 
     const groqClient = new ChatGroq({
       maxRetries: 3,
       apiKey: ctx.env.GROQ_API_KEY,
-      temperature: 0.5,
+      temperature: 0.2,
       maxTokens: 300,
       model: ctx.env.LLM_MODEL,
     });
@@ -45,7 +49,7 @@ app.post('/:sessionID', async (ctx) => {
       memoryKey: 'chat-history',
       chatHistory: new CloudflareD1MessageHistory({
         tableName: "conversation_history",
-        sessionId: "example08",
+        sessionId: userId,
         database: ctx.env.DB,
       }),
     });
@@ -54,24 +58,25 @@ app.post('/:sessionID', async (ctx) => {
     console.log('memoryLength:', messages.length, new Date());
 
     const contextMessage = await getVectorContext(ctx.env, query, 5);
+    console.log("context:", contextMessage);
+    const sysPrompt = `
+      Context:
+      ${contextMessage}
 
-    const systemPrompt = `
-    You are helping a user with a query on Marlabs website and other general questions. Please be professional and helpful.
-    When answering the query or responding, 
-    use the context and chat history provided if it is relevant only.
-    If asked about the job give job link also from context if thats available only.
-    Try to answer in 50 words or less and dont mention the context and give concisee answer.
-    Context:
-    ${contextMessage}
-  `;
-
-
+      Instructions:
+      1. If the "Context" section is non-empty and clearly related to the "Question", answer using ONLY the information provided in "Context". Be concise and factual. Also give link inside "(" and ")" from metadata for each job posting if available. 
+      2. If the "Context" section is empty or does not contain sufficient information to answer the question, answer using your general pre-trained knowledge.
+      3. If both the provided context and your general knowledge seem relevant, combine them carefully—base your answer on the context and supplement with general knowledge where needed.
+      4. If you are not confident that you have enough information to answer accurately, respond with:
+      "I'm sorry, I don't have enough information to answer that question."
+      For all response should be text and Make responses short if possible.
+    `
     const chatPrompt = ChatPromptTemplate.fromMessages([
-      [ "system", systemPrompt ],
+      ["system", sysPrompt],
       new MessagesPlaceholder("chat-history"),
       ["human", "{input}"],
     ]);
-    console.log(chatPrompt);
+    // console.log(chatPrompt);
 
 
     const chain = new ConversationChain({
@@ -79,15 +84,6 @@ app.post('/:sessionID', async (ctx) => {
       prompt: chatPrompt,
       llm: groqClient,
     });
-    
-    // const client = new Groq({
-    //   apiKey: ctx.env.GROQ_API_KEY, // This is the default and can be omitted
-    // });
-    // const stream = await client.chat.completions.create({
-    //   messages: ,
-    //   stream: true,
-    //   temperature: 0.7,
-    // });
 
     chainResp = await chain.call({
       input: query,
@@ -98,11 +94,11 @@ app.post('/:sessionID', async (ctx) => {
     // console.log('MemoryResp:', resp, new Date());
   } catch (error) {
     if (error instanceof Error) {
-      console.error('Error fetching the URL:', error.message);
-      return ctx.text(error.message);
+      console.error('Error Message:', error);
+      return ctx.text('Unable to answer now, please try after some times.');
     } else {
-      console.error('Error fetching the URL:', String(error));
-      return ctx.text(String(error));
+      console.error('Error:', String(error));
+      return ctx.text('Unable to answer now, please try after some times.');
     }
   }
   return ctx.text(chainResp.response);

@@ -45,7 +45,7 @@ async function queryVectorDB(env: Env, query: string, topKwrgs: number = 3) {
   const store = await getVectorStore(env);
 
   const results = await store.similaritySearchWithScore(query, topKwrgs);
-  console.log("vector query: ", results);
+  // console.log("vector query: ", results);
 
   return results;
 }
@@ -56,7 +56,7 @@ async function getVectorContext(env: Env, query: string, topKwrgs: number = 1) {
 
   // Attach context to system message
   const retrievedContext = results
-    .filter(([document, score]) => score > 0.5)
+    .filter(([document, score]) => score > 0.7)
     .map(([document, score]) => {
       const content = document.pageContent.replaceAll(/[{}]/g, '') || ""
       // Iterate over each key-value pair
