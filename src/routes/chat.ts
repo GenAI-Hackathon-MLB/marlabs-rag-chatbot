@@ -11,8 +11,8 @@ import {
   ChatPromptTemplate,
   MessagesPlaceholder,
 } from "@langchain/core/prompts";
-import { HumanMessage, AIMessage, SystemMessage } from "@langchain/core/messages"
-import { getCookie, deleteCookie } from "hono/cookie";
+import { SystemMessage } from "@langchain/core/messages"
+import { getCookie } from "hono/cookie";
 
 import { queryVectorDB, getVectorStore, getVectorContext } from '../utils';
 
@@ -23,19 +23,20 @@ type Variables = {
 
 const app = new Hono<{ Bindings: Env, Variables: Variables }>()
 
-
-// This endpoint is used to ask querys to the AI with cloudflare models
+// This endpoint is used to ask querys to the RAG AI models
 app.post('/', async (ctx) => {
 
-  // return ctx.text(userId);
   let chainResp: any = ""
   try {
+    // userId from cookie
     const userId = getCookie(ctx, 'userId') || ctx.get('userId');
     const payload = await ctx.req.json();
     console.log('user:', userId, 'payload:', payload, new Date());
 
+    // get user message
     const query = payload.message;
 
+    // Initialize LLM client with Groq
     const groqClient = new ChatGroq({
       maxRetries: 3,
       apiKey: ctx.env.GROQ_API_KEY,
@@ -44,6 +45,7 @@ app.post('/', async (ctx) => {
       model: ctx.env.GROQ_CHAT_MODEL,
     });
 
+    // chat history buffer memory in D1 DB
     const memory = new BufferMemory({
       returnMessages: true,
       memoryKey: 'chat-history',
@@ -53,20 +55,22 @@ app.post('/', async (ctx) => {
         database: ctx.env.D1DB,
       }),
     });
-    const messages = await memory.chatHistory.getMessages();
 
-    console.log('memoryLength:', messages.length, new Date());
-    if( messages.length>30){
-      deleteCookie(ctx, 'userId')
-    }
+    // // check chat history length
+    // const messages = await memory.chatHistory.getMessages();
+    // console.log('memoryLength:', messages.length, new Date());
 
-    const contextMessage = await getVectorContext(ctx.env, query, 5);
-    console.log("context:", contextMessage);
+    // get vector contents and metadata as string
+    const contextMessage = await getVectorContext(ctx.env, query, 10);
+    // console.log("context:", contextMessage);
+
+    // Define system prompt
     const sysPrompt = `
       Context:
       ${contextMessage}
 
       Instructions:
+      "YOUR NAME IS MARS-AI chatbot" and you are chatbot on Marlabs Pvt ltd company website.
       1. If the "Context" section is non-empty and clearly related to the "Question", answer using ONLY the information provided in "Context". Be concise and factual. Also give link inside "(" and ")" from metadata for each job posting if available. 
       2. If the "Context" section is empty or does not contain sufficient information to answer the question, answer using your general pre-trained knowledge.
       3. If both the provided context and your general knowledge seem relevant, combine them carefully—base your answer on the context and supplement with general knowledge where needed.
@@ -74,6 +78,8 @@ app.post('/', async (ctx) => {
       "I'm sorry, I don't have enough information to answer that question."
       For all response should be text and Make responses short if possible.
     `
+
+    // form prompt template
     const chatPrompt = ChatPromptTemplate.fromMessages([
       ["system", sysPrompt],
       new MessagesPlaceholder("chat-history"),
@@ -81,20 +87,20 @@ app.post('/', async (ctx) => {
     ]);
     // console.log(chatPrompt);
 
-
+    // form chain
     const chain = new ConversationChain({
       memory: memory,
       prompt: chatPrompt,
       llm: groqClient,
     });
 
+    // response from chain
     chainResp = await chain.call({
       input: query,
     });
 
     console.log('chainResp:', chainResp, new Date());
-    // const resp = await memory.chatHistory.addMessage(new HumanMessage(query));
-    // console.log('MemoryResp:', resp, new Date());
+
   } catch (error) {
     if (error instanceof Error) {
       console.error('Error Message:', error);

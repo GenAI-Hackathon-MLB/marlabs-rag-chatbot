@@ -5,7 +5,7 @@ import { cors } from 'hono/cors'
 import { getCookie, setCookie } from "hono/cookie";
 
 import chat from './routes/chat';
-import vectordb from './routes/vectordb';
+import knowledgebase from './routes/knowledgebase';
 
 // Hono c variables
 type Variables = {
@@ -18,7 +18,7 @@ const app = new Hono<{ Bindings: Env, Variables: Variables }>()
 app.use('*', cors())
 
 // Middleware
-// Add a session cookie to all requests
+// Add a session cookie to all requests if not exist
 app.use("/chat", async (ctx, next) => {
   let userId = getCookie(ctx, "userId");
   console.log('userId:', userId, new Date());
@@ -40,7 +40,7 @@ app.use("/chat", async (ctx, next) => {
 
 // Define routes
 app.route('/chat', chat)
-app.route('/vectordb', vectordb)
+app.route('/knowledgebase', knowledgebase)
 
 
 // This endpoint is for cron job initialized endpoint
@@ -53,7 +53,7 @@ async function handleScheduled(event: ScheduledEvent, env: Env, ctx: ExecutionCo
   console.log('Scheduled time: ', new Date(event.scheduledTime));
 
   // Create a new request to the /cron endpoint
-  const request = new Request('http://localhost/cron-test')
+  const request = new Request('./vectordb')
   const response = await app.fetch(request, env)
 
   // Log the response from the /cron endpoint
