@@ -26,7 +26,7 @@ app.use("*", async (ctx, next) => {
   if (!userId) {
     userId = "anon-" + crypto.randomUUID();
     console.log("New cookie:", userId, new Date());
-    const maxAge = 100000;
+    const maxAge = 600000;
     setCookie(ctx, "userId", userId, {
       secure: false,
       httpOnly: true,

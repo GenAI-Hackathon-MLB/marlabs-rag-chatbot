@@ -159,12 +159,11 @@
       let withProtocol = matched
     
       const newStr = `<a
-        class="job-link"
-        href="${withProtocol}"
-        target="_blank"
-      >
-        Link
-      </a>`
+          class="job-link"
+          href="${withProtocol}"
+          target="_blank"
+        >Link</a>
+      `
     
       return newStr
     })

@@ -12,7 +12,7 @@ import {
   MessagesPlaceholder,
 } from "@langchain/core/prompts";
 import { HumanMessage, AIMessage, SystemMessage } from "@langchain/core/messages"
-import { getCookie } from "hono/cookie";
+import { getCookie, deleteCookie } from "hono/cookie";
 
 import { queryVectorDB, getVectorStore, getVectorContext } from '../utils';
 
@@ -56,6 +56,9 @@ app.post('/', async (ctx) => {
     const messages = await memory.chatHistory.getMessages();
 
     console.log('memoryLength:', messages.length, new Date());
+    if( messages.length>30){
+      deleteCookie(ctx, 'userId')
+    }
 
     const contextMessage = await getVectorContext(ctx.env, query, 5);
     console.log("context:", contextMessage);
