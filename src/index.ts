@@ -19,7 +19,7 @@ app.use('*', cors())
 
 // Middleware
 // Add a session cookie to all requests
-app.use("*", async (ctx, next) => {
+app.use("/chat", async (ctx, next) => {
   let userId = getCookie(ctx, "userId");
   console.log('userId:', userId, new Date());
   
@@ -28,6 +28,7 @@ app.use("*", async (ctx, next) => {
     console.log("New cookie:", userId, new Date());
     const maxAge = 600000;
     setCookie(ctx, "userId", userId, {
+      path: '/chat',
       secure: false,
       httpOnly: true,
       expires: new Date(Date.now() + maxAge)

@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "worker-cron-hono",
+  "name": "mars-ai-rag-chatbot",
   "main": "src/index.ts",
   "compatibility_date": "2025-01-29",
   "observability": {
@@ -8,30 +8,30 @@
   },
   "env": {
     "dev": {
-      "name": "worker-cron-hono-dev",
+      "name": "mars-chatbot-dev",
       "assets": {
         "directory": "./public"
       },
       "vars": {
         "ENVIRONMENT": "dev",
-        "EMBEDDING_MODEL": "@cf/baai/bge-base-en-v1.5",
-        "LLM_MODEL": "llama-3.3-70b-versatile",
-        "SUMMARIZATION_MODEL": "mixtral-8x7b-32768"
+        "CF_EMBEDDING_MODEL": "@cf/baai/bge-base-en-v1.5",
+        "GROQ_CHAT_MODEL": "llama-3.3-70b-versatile",
+        "GROQ_SUMMARIZATION_MODEL": "mixtral-8x7b-32768"
       },
       "ai": {
-        "binding": "AI"
+        "binding": "CF_AI"
       },
       "d1_databases": [
         {
-          "binding": "DB",
-          "database_name": "test-chat-history",
-          "database_id": "460db141-3663-452d-880b-652a3064644c"
+          "binding": "D1DB",
+          "database_name": "mars-ai-db-dev",
+          "database_id": "38cb5f50-2862-4cf8-bb3e-873ca6585605"
         }
       ],
       "vectorize": [
         {
           "binding": "VECTORIZE",
-          "index_name": "test-embeddings-index"
+          "index_name": "mars-ai-vector-dev"
         }
       ],
       "triggers": {
@@ -45,24 +45,24 @@
       },
       "vars": {
         "ENVIRONMENT": "staging",
-        "EMBEDDING_MODEL": "@cf/baai/bge-base-en-v1.5",
-        "LLM_MODEL": "llama-3.3-70b-versatile",
-        "SUMMARIZATION_MODEL": "mixtral-8x7b-32768"
+        "CF_EMBEDDING_MODEL": "@cf/baai/bge-base-en-v1.5",
+        "GROQ_CHAT_MODEL": "llama-3.3-70b-versatile",
+        "GROQ_SUMMARIZATION_MODEL": "mixtral-8x7b-32768"
       },
       "ai": {
-        "binding": "AI"
+        "binding": "CF_AI"
       },
       "d1_databases": [
         {
-          "binding": "DB",
-          "database_name": "test-chat-history",
-          "database_id": "460db141-3663-452d-880b-652a3064644c"
+          "binding": "D1DB",
+          "database_name": "mars-ai-db-staging",
+          "database_id": "e58c9562-b9e0-4d8e-be4d-a26dcf215781"
         }
       ],
       "vectorize": [
         {
           "binding": "VECTORIZE",
-          "index_name": "test-embeddings-index"
+          "index_name": "mars-ai-vector-staging"
         }
       ],
       "triggers": {
@@ -76,24 +76,24 @@
       },
       "vars": {
         "ENVIRONMENT": "production",
-        "EMBEDDING_MODEL": "@cf/baai/bge-base-en-v1.5",
-        "LLM_MODEL": "llama-3.3-70b-versatile",
-        "SUMMARIZATION_MODEL": "mixtral-8x7b-32768"
+        "CF_EMBEDDING_MODEL": "@cf/baai/bge-base-en-v1.5",
+        "GROQ_CHAT_MODEL": "llama-3.3-70b-versatile",
+        "GROQ_SUMMARIZATION_MODEL": "mixtral-8x7b-32768"
       },
       "ai": {
-        "binding": "AI"
+        "binding": "CF_AI"
       },
       "d1_databases": [
         {
-          "binding": "DB",
-          "database_name": "test-chat-history",
-          "database_id": "460db141-3663-452d-880b-652a3064644c"
+          "binding": "D1DB",
+          "database_name": "mars-ai-db-prod",
+          "database_id": "c23e093d-4693-4661-9275-100cfe45bb93"
         }
       ],
       "vectorize": [
         {
           "binding": "VECTORIZE",
-          "index_name": "test-embeddings-index"
+          "index_name": "mars-ai-vector-prod"
         }
       ],
       "triggers": {

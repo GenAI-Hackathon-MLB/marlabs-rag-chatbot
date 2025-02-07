@@ -2,52 +2,82 @@
 import { Hono } from 'hono'
 import { Env } from "../../worker-configuration";
 
-import { getEmbeddings, queryVectorDB, getVectorStore, getJobChunks,getAllJobLinks, getCleanJobList } from '../utils';
+import {
+  getVectorStore,
+  getJobChunks,
+  getAllJobLinks,
+  getCleanJobList,
+  getPageTextChunks
+} from '../utils';
 
 // Hono c variables
 type Variables = {
   userId: string;
 };
 
+interface JobDbEntry {
+  id: string;
+  role: string;
+  url: string;
+  created_at: number;
+}
+
 const app = new Hono<{ Bindings: Env, Variables: Variables }>()
 
-app.post('/jobsupdater', async (ctx) => {
-  const wid = (await ctx.env.JOBSUPDATER_WORKFLOW.create()).id
-  return ctx.text(wid)
-})
-
-app.post('/updateJobs', async (ctx) => {
+app.post('/updatejobs', async (ctx) => {
 
   const jobLinks = await getAllJobLinks();
   console.log('jobs:', jobLinks.length);
 
   const { entriesToAdd, entriesToDelete } = await getCleanJobList(jobLinks, ctx.env)
-  console.log("jobs:", entriesToAdd.length)
-
+  
   const store = await getVectorStore(ctx.env);
-  await store.delete({ ids: entriesToDelete });
+
+  //DELETE
+  for (const sqlid of entriesToDelete) {
+    const delD1Result = await ctx.env.D1DB.prepare('DELETE FROM joblistings WHERE id=? RETURNING vids;').bind(sqlid).all();
+    let delvids = String(delD1Result.results[0].vids)
+    console.log("del sqlids:",sqlid);
+
+    if (delvids) {
+      const delvidsArr = delvids.split(',').map(uuid => uuid.trim());
+      console.log("del vids:",delvidsArr);
+
+      await store.delete({ ids: delvidsArr });
+    }
+    
+  }
 
 
   for (const { role, link } of entriesToAdd) {
-    const chunks = await getJobChunks(link, ctx.env)
+    let chunks = await getJobChunks(link, ctx.env)
 
-    const d1Result = await ctx.env.DB.prepare(`INSERT INTO joblistings (role, link) VALUES (?1, ?2) RETURNING id`).bind(role, link).all()
+    chunks = chunks.map((chunk) => ({
+      ...chunk,
+      metadata: {
+        ...chunk.metadata
+      }
+    }))
+
+    let vIds = await store.addDocuments(chunks)
+    const vIdsStr = vIds.join(', ');
+    const d1Result = await ctx.env.D1DB.prepare('INSERT INTO joblistings (role, url, vids) VALUES (?1, ?2, ?3) RETURNING id').bind(role, link, vIdsStr).all<JobDbEntry>()
     const d1Id = String(d1Result.results[0].id) || ""
 
-    const vIds = await store.addDocuments(chunks, { ids: [d1Id] })
+    console.log("added vids:", vIds);
+    console.log("added sqlids:", d1Id);
   }
 
-  return ctx.text('Job scrapping running now!')
+  return ctx.text(`Job updating done!, all jobs: ${jobLinks.length}, deleted: ${entriesToDelete.length}, added: ${entriesToAdd.length}.`)
 });
 
 // Add a new document/documents to the vector store
-app.post("/addWithUrl", async (ctx) => {
+app.post("/addwithurl", async (ctx) => {
   const payload = await ctx.req.json();
   console.log('payload:', payload, new Date());
 
-  const url = payload.url;
-
-  
+  const pageUrl = payload.url;
+  await getPageTextChunks(pageUrl, ctx.env)
 
   return ctx.json({ success: true });
 });

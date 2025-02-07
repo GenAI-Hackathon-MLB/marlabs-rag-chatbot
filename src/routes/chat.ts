@@ -41,7 +41,7 @@ app.post('/', async (ctx) => {
       apiKey: ctx.env.GROQ_API_KEY,
       temperature: 0.2,
       maxTokens: 300,
-      model: ctx.env.LLM_MODEL,
+      model: ctx.env.GROQ_CHAT_MODEL,
     });
 
     const memory = new BufferMemory({
@@ -50,7 +50,7 @@ app.post('/', async (ctx) => {
       chatHistory: new CloudflareD1MessageHistory({
         tableName: "conversation_history",
         sessionId: userId,
-        database: ctx.env.DB,
+        database: ctx.env.D1DB,
       }),
     });
     const messages = await memory.chatHistory.getMessages();
@@ -108,7 +108,7 @@ app.post('/', async (ctx) => {
 })
 
 // This endpoint is used to ask querys to the AI with cloudflare models
-app.post('/stream', async (ctx) => {
+app.post('/stream-for-later', async (ctx) => {
   const payload = await ctx.req.json();
   console.log('payload:', payload, new Date());
 
@@ -124,7 +124,7 @@ app.post('/stream', async (ctx) => {
     apiKey: ctx.env.GROQ_API_KEY,
     temperature: 0.7,
     maxTokens: 1000,
-    model: ctx.env.LLM_MODEL,
+    model: ctx.env.GROQ_CHAT_MODEL,
   });
 
   const memory = new BufferMemory({
@@ -132,7 +132,7 @@ app.post('/stream', async (ctx) => {
     chatHistory: new CloudflareD1MessageHistory({
       tableName: "conversation_history",
       sessionId: "example05",
-      database: ctx.env.DB,
+      database: ctx.env.D1DB,
     }),
   });
 
