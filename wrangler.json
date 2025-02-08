@@ -1,6 +1,5 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "mars-ai-rag-chatbot",
   "main": "src/index.ts",
   "compatibility_date": "2025-01-29",
   "observability": {
