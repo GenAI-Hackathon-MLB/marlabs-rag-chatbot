@@ -15,6 +15,10 @@ which actually executes
 ```
 wrangler dev --experimental-vectorize-bind-to-prod --env dev
 ```
+also add this command for running cron in local 
+```
+--test-scheduled
+```
 
 ## create .dev.vars file and add
 ```
