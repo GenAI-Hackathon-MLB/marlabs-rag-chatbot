@@ -118,6 +118,7 @@ async function summarizePageText(env: Env, pageContent: string) {
 // GET ALL CAREER/JOB POSTING from career page
 async function getAllJobLinks() {
   let jobItems: Job[] = []
+  let errorM: string = ""
   try {
     // Fetch the HTML from the URL
     let jobIndex: number = 0
@@ -150,11 +151,15 @@ async function getAllJobLinks() {
   } catch (error) {
     if (error instanceof Error) {
       console.error('Error fetching the URL:', error.message)
+      errorM = error.message
+      return {jobItems, errorM}
     } else {
       console.error('Error fetching the URL:', String(error))
+      errorM = String(error)
+      return {jobItems, errorM}
     }
   }
-  return jobItems
+  return {jobItems, errorM}
 }
 
 // JOBS get list of jobs to add and delete
