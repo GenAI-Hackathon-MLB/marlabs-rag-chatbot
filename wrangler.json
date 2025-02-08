@@ -1,6 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "main": "src/index.ts",
+  "name": "mars-chatbot",
   "compatibility_date": "2025-01-29",
   "observability": {
     "enabled": true

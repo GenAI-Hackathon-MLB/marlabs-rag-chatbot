@@ -14,7 +14,7 @@ import {
 import { SystemMessage } from "@langchain/core/messages"
 import { getCookie } from "hono/cookie";
 
-import { queryVectorDB, getVectorStore, getVectorContext } from '../utils';
+import { getVectorContext } from '../utils';
 
 // Hono c variables
 type Variables = {
