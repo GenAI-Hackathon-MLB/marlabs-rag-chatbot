@@ -7,7 +7,8 @@ import {
   getJobChunks,
   getAllJobLinks,
   getCleanJobList,
-  getPageTextChunks
+  getPageTextChunks,
+  getChunksFromContent
 } from '../utils';
 
 // Hono c variables
@@ -69,16 +70,47 @@ app.post('/updatejobs', async (ctx) => {
   return ctx.json({ success: true, added: entriesToAdd.length, deleted: entriesToDelete, totalScraped: jobLinks.length });
 });
 
+// input: url, title, content
+// Add a new page document/documents to the vector store/d1 db knowledge base
+app.post("/addwithcontent", async (ctx) => {
+  const payload = await ctx.req.json();
+  console.log('payload:', payload, new Date());
+
+  const url = payload?.url;
+  const title = payload?.title;
+  const pageContent = payload?.content;
+  if (!url || !title || !pageContent) {
+    new Error("Expected parameters not provided: url, title, content")
+  }
+
+  const contentChunks = await getChunksFromContent(pageContent, url, title, ctx.env)
+  // INIT VECTORIZE store
+  const store = await getVectorStore(ctx.env);
+
+  // ADD to VECTORIZE
+  let vIds = await store.addDocuments(contentChunks)
+  const vIdsStr = vIds.join(', ');
+
+  // ADD to D1
+  const d1Result = await ctx.env.D1DB.prepare('INSERT INTO knowledge_base (url, title, content, vids) VALUES (?1, ?2, ?3, ?4) RETURNING id;').bind(url, title, pageContent, vIdsStr).all();
+  const d1Id = String(d1Result.results[0].id) || ""
+
+  console.log("added vids:", vIds);
+  console.log("added sqlids:", d1Id);
+
+  return ctx.json({ success: true, url, title, vectorids: vIds, sqlid: d1Id });
+});
+
 // input: url
 // Add a new page document/documents to the vector store/d1 db knowledge base
 app.post("/addwithurl", async (ctx) => {
   const payload = await ctx.req.json();
   console.log('payload:', payload, new Date());
+  
+  const pageUrl = payload.url;
 
   // INIT VECTORIZE store
   const store = await getVectorStore(ctx.env);
-
-  const pageUrl = payload.url;
 
   // Get page content, title, chunks
   const { pageChunks, pageContent, pageTitle } = await getPageTextChunks(pageUrl, ctx.env)
@@ -96,6 +128,7 @@ app.post("/addwithurl", async (ctx) => {
 
   return ctx.json({ success: true, url: pageUrl, title: pageTitle, vectorids: vIds, sqlid: d1Id });
 });
+
 
 // Delete knowledge base document from the vector store/d1 db with d1 db id 
 app.delete("/deletepage", async (ctx) => {
