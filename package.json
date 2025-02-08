@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "wrangler dev --experimental-vectorize-bind-to-prod --env dev",
-    "dev:cron": "wrangler dev --test-scheduled",
+    "dev:cron": "wrangler dev --test-scheduled --experimental-vectorize-bind-to-prod --env dev",
     "deploy": "wrangler deploy --minify",
     "cf-typegen": "wrangler types --env-interface Env"
   },

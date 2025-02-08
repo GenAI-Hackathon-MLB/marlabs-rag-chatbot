@@ -11,6 +11,7 @@ const axios = require('axios') // To fetch HTML
 const cheerio = require('cheerio') // For parsing HTML
 
 import { Env } from '../../worker-configuration'
+import { DocumentInterface } from '@langchain/core/documents'
 
 interface Job {
   role: string
@@ -226,6 +227,49 @@ async function getJobChunks(jobUrl: string, env: Env) {
   return jobDocuments
 }
 
+async function getChunksFromContent(content: string, url: string, title: string, env: Env) {
+  
+  // split into chunks
+  const splitter = new RecursiveCharacterTextSplitter({
+    chunkSize: 500,
+    chunkOverlap: 100,
+  })
+
+  // Reduce text and clean up with AI
+  const summaryText = await summarizePageText(
+    env,
+    content
+  )
+
+  // assign new content to Docs
+  content = summaryText || content
+
+  const docs = [{
+      pageContent: content,
+      metadata: {
+        title,
+        source: url,
+        loc: "na"
+      },
+      id: ""
+    }
+  ] 
+
+  // Get title
+  const contentTitle = docs[0].metadata.title || "not found"
+  
+  // split into chunks
+  const contentDocuments = await splitter.invoke(docs)
+
+  // convert metadata.loc object to string
+  contentDocuments.map((doc) => {
+    doc.pageContent = doc.pageContent
+    doc.metadata.loc = JSON.stringify(doc.metadata.loc)
+    doc.id = performance.now().toString()
+  })
+  return contentDocuments;
+}
+
 // NORMAL PAGES get content and convert to chunks
 async function getPageTextChunks(pageUrl: string, env: Env) {
   const loader = new CheerioWebBaseLoader(pageUrl, {
@@ -260,30 +304,29 @@ async function getPageTextChunks(pageUrl: string, env: Env) {
   }])
 
   // Reduce text and clean up with AI
-  let summaryText = transformedDocs[0].pageContent
-  summaryText = await summarizePageText(
+  const summaryText = await summarizePageText(
     env,
     transformedDocs[0].pageContent
   )
 
   // assign new content to Docs
-  transformedDocs[0].pageContent = summaryText
+  transformedDocs[0].pageContent = summaryText || transformedDocs[0].pageContent
 
   // Get title
   const pageTitle = transformedDocs[0].metadata.title || "not found"
   
   // split into chunks
-  const jobDocuments = await splitter.invoke(transformedDocs)
+  const pageDocuments = await splitter.invoke(transformedDocs)
 
   // convert metadata.loc object to string
-  jobDocuments.map((doc) => {
+  pageDocuments.map((doc) => {
     doc.pageContent = doc.pageContent
     doc.metadata.loc = JSON.stringify(doc.metadata.loc)
     doc.id = performance.now().toString()
   })
-  // console.log('sequence:', jobDocuments, new Date());
-  // console.log('sequence:', jobDocuments.length, new Date());
-  return {pageChunks:jobDocuments, pageContent: summaryText, pageTitle}
+  // console.log('sequence:', pageDocuments, new Date());
+  // console.log('sequence:', pageDocuments.length, new Date());
+  return {pageChunks:pageDocuments, pageContent: summaryText, pageTitle}
 }
 
 export {
@@ -295,5 +338,6 @@ export {
   getJobChunks,
   getAllJobLinks,
   getCleanJobList,
+  getChunksFromContent,
   getPageTextChunks,
 };

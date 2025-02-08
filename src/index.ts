@@ -22,7 +22,7 @@ app.use('*', cors())
 app.use("/chat", async (ctx, next) => {
   let userId = getCookie(ctx, "userId");
   console.log('userId:', userId, new Date());
-  
+
   if (!userId) {
     userId = "anon-" + crypto.randomUUID();
     console.log("New cookie:", userId, new Date());
@@ -52,9 +52,8 @@ async function handleScheduled(event: ScheduledEvent, env: Env, ctx: ExecutionCo
 
   console.log('Scheduled time: ', new Date(event.scheduledTime));
 
-  // Create a new request to the /cron endpoint
-  const request = new Request('./vectordb')
-  const response = await app.fetch(request, env)
+  const response = await app.request('/cron-test')
+  
 
   // Log the response from the /cron endpoint
   console.log('Cron Test endpoint response:', await response.text())
