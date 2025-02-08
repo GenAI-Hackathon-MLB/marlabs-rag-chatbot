@@ -52,11 +52,11 @@ async function handleScheduled(event: ScheduledEvent, env: Env, ctx: ExecutionCo
 
   console.log('Scheduled time: ', new Date(event.scheduledTime));
 
-  const response = await app.request('/cron-test')
+  // const response = await app.request('/cron-test')
   
 
-  // Log the response from the /cron endpoint
-  console.log('Cron Test endpoint response:', await response.text())
+  // // Log the response from the /cron endpoint
+  // console.log('Cron Test endpoint response:', await response.text())
 }
 
 export default {

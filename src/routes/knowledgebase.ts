@@ -19,7 +19,7 @@ type Variables = {
 const app = new Hono<{ Bindings: Env, Variables: Variables }>()
 
 // update jobs in db and vector with latest scraped list
-app.get('/updatejobs', async (ctx) => {
+app.post('/updatejobs', async (ctx) => {
 
   const jobLinks = await getAllJobLinks();
   console.log('jobs:', jobLinks.length);
