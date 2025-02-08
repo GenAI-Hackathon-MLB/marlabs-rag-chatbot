@@ -1,35 +1,101 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "worker-cron-hono",
   "main": "src/index.ts",
+  "name": "mars-chatbot",
   "compatibility_date": "2025-01-29",
   "observability": {
     "enabled": true
   },
   "env": {
     "dev": {
-      "vars": {
-        "ENVIRONMENT": "dev"
+      "name": "mars-chatbot-dev",
+      "assets": {
+        "directory": "./public"
       },
-      "name": "worker-cron-hono-dev",
+      "vars": {
+        "ENVIRONMENT": "dev",
+        "CF_EMBEDDING_MODEL": "@cf/baai/bge-base-en-v1.5",
+        "GROQ_CHAT_MODEL": "llama-3.3-70b-versatile",
+        "GROQ_SUMMARIZATION_MODEL": "mixtral-8x7b-32768"
+      },
+      "ai": {
+        "binding": "CF_AI"
+      },
+      "d1_databases": [
+        {
+          "binding": "D1DB",
+          "database_name": "mars-ai-db-dev",
+          "database_id": "38cb5f50-2862-4cf8-bb3e-873ca6585605"
+        }
+      ],
+      "vectorize": [
+        {
+          "binding": "VECTORIZE",
+          "index_name": "mars-ai-vector-dev"
+        }
+      ],
       "triggers": {
-        "crons": ["* * * * *"]
+        "crons": ["0 0 1 * *"]
       }
     },
     "staging": {
-      "vars": {
-        "ENVIRONMENT": "staging"
+      "name": "mars-chatbot-staging",
+      "assets": {
+        "directory": "./public"
       },
-      "name": "worker-cron-hono-staging",
+      "vars": {
+        "ENVIRONMENT": "staging",
+        "CF_EMBEDDING_MODEL": "@cf/baai/bge-base-en-v1.5",
+        "GROQ_CHAT_MODEL": "llama-3.3-70b-versatile",
+        "GROQ_SUMMARIZATION_MODEL": "mixtral-8x7b-32768"
+      },
+      "ai": {
+        "binding": "CF_AI"
+      },
+      "d1_databases": [
+        {
+          "binding": "D1DB",
+          "database_name": "mars-ai-db-staging",
+          "database_id": "e58c9562-b9e0-4d8e-be4d-a26dcf215781"
+        }
+      ],
+      "vectorize": [
+        {
+          "binding": "VECTORIZE",
+          "index_name": "mars-ai-vector-staging"
+        }
+      ],
       "triggers": {
-        "crons": ["0 * * * *"]
+        "crons": ["0 0 1 * *"]
       }
     },
     "production": {
-      "vars": {
-        "ENVIRONMENT": "production"
+      "name": "mars-chatbot-prod",
+      "assets": {
+        "directory": "./public"
       },
-      "name": "worker-cron-hono-production",
+      "vars": {
+        "ENVIRONMENT": "production",
+        "CF_EMBEDDING_MODEL": "@cf/baai/bge-base-en-v1.5",
+        "GROQ_CHAT_MODEL": "llama-3.3-70b-versatile",
+        "GROQ_SUMMARIZATION_MODEL": "mixtral-8x7b-32768"
+      },
+      "ai": {
+        "binding": "CF_AI"
+      },
+      "d1_databases": [
+        {
+          "binding": "D1DB",
+          "database_name": "mars-ai-db-prod",
+          "database_id": "c23e093d-4693-4661-9275-100cfe45bb93"
+        }
+      ],
+      "vectorize": [
+        {
+          "binding": "VECTORIZE",
+          "index_name": "mars-ai-vector-prod"
+        }
+      ],
       "triggers": {
         "crons": ["0 0 1 * *"]
       }
