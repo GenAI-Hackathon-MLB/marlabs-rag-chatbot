@@ -152,7 +152,7 @@ app.post("/addwithurl", async (ctx) => {
 
 
 // Delete knowledge base document from the vector store/d1 db with d1 db id 
-app.delete("/deletepage", async (ctx) => {
+app.delete("/deleteitem", async (ctx) => {
   const payload = await ctx.req.json();
   console.log('payload:', payload, new Date());
 
