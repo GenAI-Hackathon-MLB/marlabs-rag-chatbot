@@ -12,7 +12,6 @@ type Variables = {
   userId: string;
 };
 
-
 const app = new Hono<{ Bindings: Env, Variables: Variables }>()
 
 app.use('*', cors())
