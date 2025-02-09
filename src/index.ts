@@ -26,7 +26,7 @@ app.use("/chat", async (ctx, next) => {
   if (!userId) {
     userId = "anon-" + crypto.randomUUID();
     console.log("New cookie:", userId, new Date());
-    const maxAge = 600000;
+    const maxAge = 1200000;
     setCookie(ctx, "userId", userId, {
       path: '/chat',
       secure: false,
