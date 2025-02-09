@@ -251,22 +251,22 @@ To embed chat ui to website add
 
 ### Knowledgebase
   #### Update Jobs
-    - /knowledgebase/updatejobs
-    - POST
-    ```
-    {}
-    ```
+  - /knowledgebase/updatejobs
+  - POST
+  ```
+  {}
+  ```
   #### Add content with URL (Bot will scrape text from the given url)
-    - /knowledgebase/addwithurl
-    - POST
+  - /knowledgebase/addwithurl
+  - POST
     ```
     {
       "url": "https://www.marlabs.com/insight/automation-boosts-profitability-by-90-for-brazilian-construction-giant/"
     }
     ```
   #### Add content with text content
-    - /knowledgebase/addwithcontent
-    - POST
+  - /knowledgebase/addwithcontent
+  - POST
     ```
     {
       "url": "https://www.marlabs.com/insight/automation-boosts-profitability-by-90-for-brazilian-construction-giant/",
@@ -275,8 +275,8 @@ To embed chat ui to website add
     }
     ```
   ### Delete entry from knowledgebase
-    - /knowledgebase/deleteitem
-    - POST
+  - /knowledgebase/deleteitem
+  - POST
     ```
     {
       "d1id": ""
