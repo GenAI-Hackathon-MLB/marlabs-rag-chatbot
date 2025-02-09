@@ -160,6 +160,7 @@ app.post("/addwithurl", async (ctx) => {
   
   const pageUrl = payload.url;
 
+  // url from request
   const pageUrl = payload.url;
 
   // INIT VECTORIZE store
