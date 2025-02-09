@@ -20,54 +20,105 @@ const app = new Hono<{ Bindings: Env, Variables: Variables }>()
 
 // update jobs in db and vector with latest scraped list
 app.post('/updatejobs', async (ctx) => {
+  let added: number = 0;
+  let deleted: number = 0;
+  let total: number = 0;
+  try {
 
-  const jobLinks = await getAllJobLinks();
-  console.log('jobs:', jobLinks.length);
+    const {jobItems: jobLinks, errorM} = await getAllJobLinks();
+    if(typeof(jobLinks)=='string'){
+      return ctx.text("error while fetching:" + errorM)
+    }
+    console.log('scraped jobs:', jobLinks.length);
 
-  const { entriesToAdd, entriesToDelete } = await getCleanJobList(jobLinks, ctx.env)
+    const { entriesToAdd, entriesToDelete } = await getCleanJobList(jobLinks, ctx.env)
 
-  // INIT VECTORIZE store
-  const store = await getVectorStore(ctx.env);
+    // INIT VECTORIZE store
+    const store = await getVectorStore(ctx.env);
 
-  //DELETE
-  for (const sqlid of entriesToDelete) {
-    // DELETE from D1
-    const delD1Result = await ctx.env.D1DB.prepare('DELETE FROM joblistings WHERE id=? RETURNING vids;').bind(sqlid).all();
-    let delvids = String(delD1Result.results[0].vids)
-    console.log("del sqlids:", sqlid);
+    //DELETE
+    for (const sqlid of entriesToDelete) {
+      // DELETE from D1
+      const delD1Result = await ctx.env.D1DB.prepare('DELETE FROM joblistings WHERE id=? RETURNING vids;').bind(sqlid).all();
+      let delvids = String(delD1Result.results[0].vids)
+      console.log("del sqlids:", sqlid);
 
-    if (delvids) {
-      const delvidsArr = delvids.split(',').map(uuid => uuid.trim());
-      console.log("del vids:", delvidsArr);
-      // DELETE from VECTORIZE
-      await store.delete({ ids: delvidsArr });
+      if (delvids) {
+        const delvidsArr = delvids.split(',').map(uuid => uuid.trim());
+        console.log("del vids:", delvidsArr);
+        // DELETE from VECTORIZE
+        await store.delete({ ids: delvidsArr });
+      }
+    }
+
+    for (const { role, link } of entriesToAdd) {
+      // chunks in Document[] form
+      let chunks = await getJobChunks(link, ctx.env)
+
+      // // Add more metadata/content to Vector chunks
+      // chunks = chunks.map((chunk) => ({
+      //   ...chunk,
+      //   metadata: {
+      //     ...chunk.metadata
+      //   }
+      // }))
+
+      // ADD to VECTORIZE
+      let vIds = await store.addDocuments(chunks)
+      const vIdsStr = vIds.join(', ');
+      // ADD to D1
+      const d1Result = await ctx.env.D1DB.prepare('INSERT INTO joblistings (role, url, vids) VALUES (?1, ?2, ?3) RETURNING id;').bind(role, link, vIdsStr).all()
+      const d1Id = String(d1Result.results[0].id) || ""
+
+      console.log("added vids:", vIds);
+      console.log("added sqlids:", d1Id);
+
+      added = entriesToAdd.length
+      deleted = entriesToDelete.length
+      total = jobLinks.length
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error('Error Message:', error);
+      return ctx.text('Unable to answer now, please try after some times.');
+    } else {
+      console.error('Error:', String(error));
+      return ctx.text('Unable to answer now, please try after some times.');
     }
   }
 
-  for (const { role, link } of entriesToAdd) {
-    // chunks in Document[] form
-    let chunks = await getJobChunks(link, ctx.env)
+  return ctx.json({ success: true, added, deleted, total });
+});
 
-    // // Add more metadata/content to Vector chunks
-    // chunks = chunks.map((chunk) => ({
-    //   ...chunk,
-    //   metadata: {
-    //     ...chunk.metadata
-    //   }
-    // }))
+// input: url, title, content
+// Add a new page document/documents to the vector store/d1 db knowledge base
+app.post("/addwithcontent", async (ctx) => {
+  const payload = await ctx.req.json();
+  console.log('payload:', payload, new Date());
 
-    // ADD to VECTORIZE
-    let vIds = await store.addDocuments(chunks)
-    const vIdsStr = vIds.join(', ');
-    // ADD to D1
-    const d1Result = await ctx.env.D1DB.prepare('INSERT INTO joblistings (role, url, vids) VALUES (?1, ?2, ?3) RETURNING id;').bind(role, link, vIdsStr).all()
-    const d1Id = String(d1Result.results[0].id) || ""
-
-    console.log("added vids:", vIds);
-    console.log("added sqlids:", d1Id);
+  const url = payload?.url;
+  const title = payload?.title;
+  const pageContent = payload?.content;
+  if (!url || !title || !pageContent) {
+    new Error("Expected parameters not provided: url, title, content")
   }
 
-  return ctx.json({ success: true, added: entriesToAdd.length, deleted: entriesToDelete, totalScraped: jobLinks.length });
+  const contentChunks = await getChunksFromContent(pageContent, url, title, ctx.env)
+  // INIT VECTORIZE store
+  const store = await getVectorStore(ctx.env);
+
+  // ADD to VECTORIZE
+  let vIds = await store.addDocuments(contentChunks)
+  const vIdsStr = vIds.join(', ');
+
+  // ADD to D1
+  const d1Result = await ctx.env.D1DB.prepare('INSERT INTO knowledge_base (url, title, content, vids) VALUES (?1, ?2, ?3, ?4) RETURNING id;').bind(url, title, pageContent, vIdsStr).all();
+  const d1Id = String(d1Result.results[0].id) || ""
+
+  console.log("added vids:", vIds);
+  console.log("added sqlids:", d1Id);
+
+  return ctx.json({ success: true, url, title, vectorids: vIds, sqlid: d1Id });
 });
 
 // input: url, title, content
@@ -107,6 +158,8 @@ app.post("/addwithurl", async (ctx) => {
   const payload = await ctx.req.json();
   console.log('payload:', payload, new Date());
   
+  const pageUrl = payload.url;
+
   const pageUrl = payload.url;
 
   // INIT VECTORIZE store
