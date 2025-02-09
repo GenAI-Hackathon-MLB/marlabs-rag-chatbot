@@ -127,6 +127,7 @@ app.post("/addwithurl", async (ctx) => {
   const payload = await ctx.req.json();
   console.log('payload:', payload, new Date());
 
+  // url from request
   const pageUrl = payload.url;
 
   // INIT VECTORIZE store
