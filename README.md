@@ -279,7 +279,7 @@ To embed chat ui to website add
       "content": ""
     }
     ```
-  ### Delete entry from knowledgebase
+  #### Delete entry from knowledgebase
   - /knowledgebase/deleteitem
   - POST
     ```
