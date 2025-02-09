@@ -1,6 +1,11 @@
+# RAG Chatbot built for GenAI Hackathon
+## Team
+* Kanchanashree Krish
+* Keshab Manni
+* Saiprakash Reddy
 
+## General
 ### Run locally for dev environment(in local mode)
-
 ```
 wrangler dev --experimental-vectorize-bind-to-prod --env dev
 ```
