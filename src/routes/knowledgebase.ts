@@ -158,8 +158,6 @@ app.post("/addwithurl", async (ctx) => {
   const payload = await ctx.req.json();
   console.log('payload:', payload, new Date());
   
-  const pageUrl = payload.url;
-
   // url from request
   const pageUrl = payload.url;
 
