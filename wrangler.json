@@ -16,7 +16,8 @@
         "ENVIRONMENT": "dev",
         "CF_EMBEDDING_MODEL": "@cf/baai/bge-base-en-v1.5",
         "GROQ_CHAT_MODEL": "llama-3.3-70b-versatile",
-        "GROQ_SUMMARIZATION_MODEL": "mixtral-8x7b-32768"
+        "GROQ_SUMMARIZATION_MODEL": "mixtral-8x7b-32768",
+        "HF_PROMPT_INJECTION_DETECTION_MODEL": "protectai/deberta-v3-base-prompt-injection-v2"
       },
       "ai": {
         "binding": "CF_AI"

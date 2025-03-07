@@ -14,7 +14,7 @@ import {
 import { SystemMessage } from "@langchain/core/messages"
 import { getCookie } from "hono/cookie";
 
-import { getVectorContext } from '../utils';
+import { getVectorContext, promptDetection } from '../utils';
 
 // Hono c variables
 type Variables = {
@@ -25,6 +25,9 @@ const app = new Hono<{ Bindings: Env, Variables: Variables }>()
 
 // This endpoint is used to ask querys to the RAG AI models
 app.post('/', async (ctx) => {
+  const queryType = ctx.req.query('type');
+  console.log('Chat Type:', queryType);
+  
 
   let chainResp: any = ""
   try {
@@ -36,12 +39,20 @@ app.post('/', async (ctx) => {
     // get user message
     const query = payload.message;
 
+    // Prompt Injection Detection
+    // const detectionResult = await promptDetection(query, ctx.env);
+    // if(detectionResult) {
+    //   console.log("Prompt Injection or Jailbreak attempt detected!!");
+      
+    //   throw(new Error("Prompt Injection or Jailbreak attempt detected!!"))
+    // }
+
     // Initialize LLM client with Groq
     const groqClient = new ChatGroq({
       maxRetries: 3,
       apiKey: ctx.env.GROQ_API_KEY,
       temperature: 0.2,
-      maxTokens: 300,
+      maxTokens: 600,
       model: ctx.env.GROQ_CHAT_MODEL,
     });
 
@@ -65,23 +76,34 @@ app.post('/', async (ctx) => {
     // console.log("context:", contextMessage);
 
     // Define system prompt
-    const sysPrompt = `
+    const sysPromptPrivate = `
       Context:
       ${contextMessage}
 
       Instructions:
       "YOUR NAME IS MARS-AI chatbot" and you are chatbot on Marlabs Pvt ltd company website.
-      1. If the "Context" section is non-empty and clearly related to the "Question", answer using ONLY the information provided in "Context" and consider "Context.metadata.title" section also. Be concise and factual. Also give link inside "(" and ")" from metadata for each job posting if available. 
+      1. If the "Context" section is non-empty and clearly related to the "Question", answer using ONLY the information provided in "Context" and consider "Context.metadata.title" section also. Also give link inside "(" and ")" from metadata for each job posting if available. 
+      2. If the "Context" section is empty or does not contain sufficient information to answer the question, answer saying something like you do not have the information related to it in your knowledge as you can only answer about question regarding Marlabs company.
+      3. If you are not confident that you have enough information to answer accurately, respond with:
+      "I'm sorry, I don't have enough information to answer that question."
+    `
+    const sysPromptPublic = `
+      Context:
+      ${contextMessage}
+
+      Instructions:
+      "YOUR NAME IS MARS-AI chatbot" and you are chatbot on Marlabs Pvt ltd company website.
+      1. If the "Context" section is non-empty and clearly related to the "Question", answer using ONLY the information provided in "Context" and consider "Context.metadata.title" section also. Also give link inside "(" and ")" from metadata for each job posting if available. 
       2. If the "Context" section is empty or does not contain sufficient information to answer the question, answer using your general pre-trained knowledge.
       3. If both the provided context and your general knowledge seem relevant, combine them carefully—base your answer on the context and supplement with general knowledge where needed.
       4. If you are not confident that you have enough information to answer accurately, respond with:
       "I'm sorry, I don't have enough information to answer that question."
-      For all response should be text and Make responses short if possible.
     `
 
+    const systemPrompt = queryType === 'private' ? sysPromptPrivate : sysPromptPublic
     // form prompt template
     const chatPrompt = ChatPromptTemplate.fromMessages([
-      ["system", sysPrompt],
+      ["system", systemPrompt],
       new MessagesPlaceholder("chat-history"),
       ["human", "{input}"],
     ]);
@@ -100,6 +122,7 @@ app.post('/', async (ctx) => {
     });
 
     console.log('chainResp:', chainResp, new Date());
+    
 
   } catch (error) {
     if (error instanceof Error) {
