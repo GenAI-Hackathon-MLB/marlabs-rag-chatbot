@@ -9,6 +9,7 @@
     "cf-typegen": "wrangler types --env-interface Env"
   },
   "dependencies": {
+    "@huggingface/inference": "^2.8.1",
     "@langchain/cloudflare": "^0.1.0",
     "@langchain/community": "^0.3.28",
     "@langchain/core": "^0.3.37",

@@ -1,8 +1,4 @@
 const chatSkeletonHtml = `
-<button id="chatButton" class="chat-button">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>
-    </button>
-    
     <div id="chatWidget" class="chat-widget">
         <div class="chat-header">
             <div class="chat-avatar">
@@ -11,9 +7,19 @@ const chatSkeletonHtml = `
             <div class="chat-title">
                 <h3>Mars-AI Chatbot</h3>
             </div>
-            <button id="closeButton" class="close-button">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            </button>
+            <div class="toggle-container">
+                <span id="modeLabel">Marlabs</span>
+                <label class="switch">
+                    <input type="checkbox" id="modeToggle">
+                    <span class="slider round"></span>
+                </label>
+                <button id="resetChat" title="Reset chat" class="reset-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                        <path d="M3 3v5h5"/>
+                    </svg>
+                </button>
+            </div>
         </div>
         <div id="chatMessages" class="chat-messages"></div>
         <form id="chatForm" class="chat-form">
@@ -24,38 +30,45 @@ const chatSkeletonHtml = `
         </form>
     </div>
 `
-const tempDiv = document.createElement('div')
-tempDiv.id = 'chat-container'
-tempDiv.innerHTML = chatSkeletonHtml.trim() // Trim whitespace
-document.body.appendChild(tempDiv)
+const chatbot_container = document.getElementById('chatbot-container')
+// tempDiv.id = 'chat-container'
+chatbot_container.innerHTML = chatSkeletonHtml.trim() // Trim whitespace
+document.body.append(chatbot_container)
 
 document.addEventListener('DOMContentLoaded', () => {
-  const chatButton = document.getElementById('chatButton')
-  const chatWidget = document.getElementById('chatWidget')
-  const closeButton = document.getElementById('closeButton')
+  console.log(document.cookie);
+
+  // const chatButton = document.getElementById('chatButton')
+  // const chatWidget = document.getElementById('chatWidget')
+  // const closeButton = document.getElementById('closeButton')
   const chatForm = document.getElementById('chatForm')
   const chatInput = document.getElementById('chatInput')
   const chatMessages = document.getElementById('chatMessages')
   const sendButton = document.getElementById('sendButton')
+  const modeToggle = document.getElementById('modeToggle');
+  const modeLabel = document.getElementById('modeLabel');
+  const resetButton = document.getElementById('resetChat');
 
-  let isOpen = false
-  let isTyping = false
+  // let isOpen = false
+  // let isTyping = false
+  let isMarlabsMode = true; // Default mode
+  let isResetChat = 'no';
 
-  function toggleChat() {
-    isOpen = !isOpen
-    chatButton.style.display = isOpen ? 'none' : 'flex'
-    chatWidget.style.display = isOpen ? 'flex' : 'none'
-    if (isOpen) {
-      chatWidget.style.transform = 'scale(1)'
-      chatWidget.style.opacity = '1'
-    } else {
-      chatWidget.style.transform = 'scale(0.95)'
-      chatWidget.style.opacity = '0'
-    }
-  }
+  // function toggleChat() {
+  //   isOpen = !isOpen
+  //   chatButton.style.display = isOpen ? 'none' : 'flex'
+  //   chatWidget.style.display = isOpen ? 'flex' : 'none'
+  //   if (isOpen) {
+  //     chatWidget.style.transform = 'scale(1)'
+  //     chatWidget.style.opacity = '1'
+  //   } else {
+  //     chatWidget.style.transform = 'scale(0.95)'
+  //     chatWidget.style.opacity = '0'
+  //   }
+  // }
 
-  chatButton.addEventListener('click', toggleChat)
-  closeButton.addEventListener('click', toggleChat)
+  // chatButton.addEventListener('click', toggleChat)
+  // closeButton.addEventListener('click', toggleChat)
 
   function addMessage(id, text, sender) {
     const messageElement = document.createElement('div')
@@ -128,7 +141,10 @@ document.addEventListener('DOMContentLoaded', () => {
   async function fetchChatResponse(userMessage) {
     const id = Date.now()
     addTypingIndicator()
-    const response = await fetch('./chat', {
+    const params = `type=${isMarlabsMode ? 'private' : 'llm'}&reset=${isResetChat}`
+    isResetChat='no'
+    
+    const response = await fetch((`./chat?${params}`), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: userMessage }),
@@ -154,6 +170,18 @@ document.addEventListener('DOMContentLoaded', () => {
     message.innerHTML = convertMarkdownToHTML(message.innerHTML)
   }
 
+  function resetChat() {
+    chatMessages.innerHTML = '';
+    isResetChat = 'yes'
+  }
+
+  modeToggle.addEventListener('change', () => {
+    isMarlabsMode = !isMarlabsMode;
+    modeLabel.textContent = isMarlabsMode ? 'Marlabs' : 'LLM';
+    // resetChat();
+  });
+
+  resetButton.addEventListener('click', resetChat);
 
   chatForm.addEventListener('submit', (e) => {
     e.preventDefault()

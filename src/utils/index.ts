@@ -10,6 +10,8 @@ import Groq from 'groq-sdk'
 const axios = require('axios') // To fetch HTML
 const cheerio = require('cheerio') // For parsing HTML
 
+import {HfInference} from '@huggingface/inference'
+
 import { Env } from '../../worker-configuration'
 import { DocumentInterface } from '@langchain/core/documents'
 
@@ -334,6 +336,25 @@ async function getPageTextChunks(pageUrl: string, env: Env) {
   return {pageChunks:pageDocuments, pageContent: summaryText, pageTitle}
 }
 
+// HF - Prompt Injection Detection
+async function promptDetection(inputText: string, env: Env) {
+  const hf = new HfInference(env.HF_ACCESS_TOKEN)
+  const result = await hf.textClassification({
+    model: "meta-llama/Prompt-Guard-86M",
+    inputs: inputText,
+  })
+
+  const resultMap = result.reduce((acc, item) => {
+    acc[item.label] = item.score;
+    return acc;
+  }, {} as Record<string, number>);
+  console.log("Prompt Injection Detection Result:", "Jailbreak:", resultMap.JAILBREAK, "Injection:", resultMap.INJECTION);
+  if (resultMap.INJECTION >= 0.95 || resultMap.JAILBREAK >= 0.95){
+    return true
+  }
+  return false
+}
+
 export {
   getEmbeddings,
   getVectorStore,
@@ -345,4 +366,5 @@ export {
   getCleanJobList,
   getChunksFromContent,
   getPageTextChunks,
+  promptDetection
 };
