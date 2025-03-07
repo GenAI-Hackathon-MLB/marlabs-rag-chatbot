@@ -22,7 +22,10 @@ app.use("/chat", async (ctx, next) => {
   let userId = getCookie(ctx, "userId");
   console.log('userId:', userId, new Date());
 
-  if (!userId) {
+  const resetChat = ctx.req.query('reset')
+  console.log('Chat Reset:', resetChat);
+
+  if (!userId || resetChat==='yes') {
     userId = "anon-" + crypto.randomUUID();
     console.log("New cookie:", userId, new Date());
     const maxAge = 1200000;
@@ -32,8 +35,8 @@ app.use("/chat", async (ctx, next) => {
       httpOnly: true,
       expires: new Date(Date.now() + maxAge)
     });
-    ctx.set("userId", userId);
   }
+  ctx.set("userId", userId);
   await next();
 });
 

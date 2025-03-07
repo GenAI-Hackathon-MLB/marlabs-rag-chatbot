@@ -8,11 +8,17 @@ const chatSkeletonHtml = `
                 <h3>Mars-AI Chatbot</h3>
             </div>
             <div class="toggle-container">
-            <span id="modeLabel">Marlabs</span>
+                <span id="modeLabel">Marlabs</span>
                 <label class="switch">
                     <input type="checkbox" id="modeToggle">
                     <span class="slider round"></span>
                 </label>
+                <button id="resetChat" title="Reset chat" class="reset-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                        <path d="M3 3v5h5"/>
+                    </svg>
+                </button>
             </div>
         </div>
         <div id="chatMessages" class="chat-messages"></div>
@@ -30,6 +36,8 @@ chatbot_container.innerHTML = chatSkeletonHtml.trim() // Trim whitespace
 document.body.append(chatbot_container)
 
 document.addEventListener('DOMContentLoaded', () => {
+  console.log(document.cookie);
+
   // const chatButton = document.getElementById('chatButton')
   // const chatWidget = document.getElementById('chatWidget')
   // const closeButton = document.getElementById('closeButton')
@@ -39,10 +47,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const sendButton = document.getElementById('sendButton')
   const modeToggle = document.getElementById('modeToggle');
   const modeLabel = document.getElementById('modeLabel');
+  const resetButton = document.getElementById('resetChat');
 
-  let isOpen = false
-  let isTyping = false
+  // let isOpen = false
+  // let isTyping = false
   let isMarlabsMode = true; // Default mode
+  let isResetChat = 'no';
 
   // function toggleChat() {
   //   isOpen = !isOpen
@@ -131,7 +141,10 @@ document.addEventListener('DOMContentLoaded', () => {
   async function fetchChatResponse(userMessage) {
     const id = Date.now()
     addTypingIndicator()
-    const response = await fetch('./chat?type=' + (isMarlabsMode ? 'private' : 'llm'), {
+    const params = `type=${isMarlabsMode ? 'private' : 'llm'}&reset=${isResetChat}`
+    isResetChat='no'
+    
+    const response = await fetch((`./chat?${params}`), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: userMessage }),
@@ -157,11 +170,18 @@ document.addEventListener('DOMContentLoaded', () => {
     message.innerHTML = convertMarkdownToHTML(message.innerHTML)
   }
 
+  function resetChat() {
+    chatMessages.innerHTML = '';
+    isResetChat = 'yes'
+  }
+
   modeToggle.addEventListener('change', () => {
     isMarlabsMode = !isMarlabsMode;
     modeLabel.textContent = isMarlabsMode ? 'Marlabs' : 'LLM';
-    
+    // resetChat();
   });
+
+  resetButton.addEventListener('click', resetChat);
 
   chatForm.addEventListener('submit', (e) => {
     e.preventDefault()

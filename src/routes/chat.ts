@@ -12,7 +12,7 @@ import {
   MessagesPlaceholder,
 } from "@langchain/core/prompts";
 import { SystemMessage } from "@langchain/core/messages"
-import { getCookie } from "hono/cookie";
+import { getCookie, deleteCookie } from "hono/cookie";
 
 import { getVectorContext, promptDetection } from '../utils';
 
@@ -27,12 +27,11 @@ const app = new Hono<{ Bindings: Env, Variables: Variables }>()
 app.post('/', async (ctx) => {
   const queryType = ctx.req.query('type');
   console.log('Chat Type:', queryType);
-  
 
   let chainResp: any = ""
   try {
     // userId from cookie
-    const userId = getCookie(ctx, 'userId') || ctx.get('userId');
+    const userId = ctx.get('userId');
     const payload = await ctx.req.json();
     console.log('user:', userId, 'payload:', payload, new Date());
 

@@ -224,3 +224,20 @@ input:checked + .slider:before {
   padding: 0px 10px;
 }
 
+.reset-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 5px;
+    margin-left: 10px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reset-button:hover {
+    background-color: #f3f4f6;
+}
+
