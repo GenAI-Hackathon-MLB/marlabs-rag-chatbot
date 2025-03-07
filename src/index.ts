@@ -12,7 +12,6 @@ type Variables = {
   userId: string;
 };
 
-
 const app = new Hono<{ Bindings: Env, Variables: Variables }>()
 
 app.use('*', cors())
@@ -23,18 +22,21 @@ app.use("/chat", async (ctx, next) => {
   let userId = getCookie(ctx, "userId");
   console.log('userId:', userId, new Date());
 
-  if (!userId) {
+  const resetChat = ctx.req.query('reset')
+  console.log('Chat Reset:', resetChat);
+
+  if (!userId || resetChat==='yes') {
     userId = "anon-" + crypto.randomUUID();
     console.log("New cookie:", userId, new Date());
-    const maxAge = 600000;
+    const maxAge = 1200000;
     setCookie(ctx, "userId", userId, {
       path: '/chat',
       secure: false,
       httpOnly: true,
       expires: new Date(Date.now() + maxAge)
     });
-    ctx.set("userId", userId);
   }
+  ctx.set("userId", userId);
   await next();
 });
 

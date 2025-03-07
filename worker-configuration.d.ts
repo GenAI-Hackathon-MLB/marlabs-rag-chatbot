@@ -4,6 +4,7 @@ interface Env {
   CF_EMBEDDING_MODEL: string;
   GROQ_CHAT_MODEL: string;
   GROQ_SUMMARIZATION_MODEL: string;
+  HF_PROMPT_INJECTION_DETECTION_MODEL: string;
   CF_AI: Ai;
   D1DB: D1Database;
   VECTORIZE: VectorizeIndex;
@@ -11,6 +12,7 @@ interface Env {
   ADDVECTORS_WORKFLOW: Workflow;
   DELETEVECTORS_WORKFLOW: Workflow;
   GROQ_API_KEY: string;
+  HF_ACCESS_TOKEN: string;
 }
 
 
